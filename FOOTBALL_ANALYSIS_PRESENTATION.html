@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Football Analysis Project</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A single-page, scrollable application with a fixed navigation bar. The structure is designed to walk the user through the project's technical pipeline, from initial setup to final output. Each major step of the Python script (Tracking, Camera Compensation, Transformation, Analytics) is a dedicated, interactive section. This thematic structure is more engaging than a linear slide deck, allowing users to explore the concepts in any order. The core interaction is a clickable pipeline diagram that smoothly scrolls to the corresponding section, making navigation intuitive and highlighting the project's workflow. -->
+    <!-- Visualization & Content Choices: 
+        - Project Goal -> Inform -> Key bullet points for clarity.
+        - Core Technologies -> Inform -> A styled list with icons for quick recognition.
+        - Analysis Pipeline -> Organize/Navigate -> An interactive, clickable flowchart made with HTML/Tailwind. This is the central navigation element. Goal: Guide the user through the complex process.
+        - Player Tracking -> Inform/Organize -> Text explanation paired with a visual diagram (HTML/CSS) showing a bounding box.
+        - Camera & Perspective -> Compare -> A 'before/after' visual comparison using HTML/CSS to show the effect of perspective transformation. Goal: Clearly demonstrate the value of this step.
+        - Data Enrichment -> Compare/Inform -> Interactive charts (Chart.js Donut for possession, Bar for player stats) to visualize the kind of data generated. This makes the abstract data tangible.
+        - Final Output -> Inform -> A descriptive panel explaining the final annotated video.
+        - Justification: This structure breaks down a complex computer vision project into digestible, interactive parts, making it easier to understand than static text. Chart.js was chosen for its simplicity and clean look for the data visualization parts.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7;
+            color: #383838;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .pipeline-step {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .pipeline-step:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .nav-link {
+            transition: color 0.2s;
+        }
+        .nav-link:hover {
+            color: #C89F62;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200/50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-[#2C3E50]">Football Analysis Project</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#goal" class="nav-link font-medium">Goal</a>
+                <a href="#pipeline" class="nav-link font-medium">Pipeline</a>
+                <a href="#tech" class="nav-link font-medium">Technologies</a>
+                <a href="#conclusion" class="nav-link font-medium">Conclusion</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 md:py-20">
+
+        <section id="intro" class="text-center mb-20">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4 text-[#2C3E50]">Automated Football Analysis</h2>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">A Computer Vision approach to unlocking deep game insights, transforming raw video into tactical data.</p>
+        </section>
+
+        <section id="goal" class="mb-20 scroll-mt-20">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="text-3xl font-bold text-center mb-8 text-[#2C3E50]">Project Goal</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-gray-700">
+                    <div class="bg-[#FDFBF7] p-6 rounded-xl">
+                        <h4 class="font-bold text-lg mb-2 text-[#C89F62]">Tracking & Identification</h4>
+                        <p>Automatically track players and the ball, and assign players to their respective teams.</p>
+                    </div>
+                    <div class="bg-[#FDFBF7] p-6 rounded-xl">
+                        <h4 class="font-bold text-lg mb-2 text-[#C89F62]">Performance Metrics</h4>
+                        <p>Calculate key performance indicators like player speed and total distance covered during the match.</p>
+                    </div>
+                    <div class="bg-[#FDFBF7] p-6 rounded-xl">
+                        <h4 class="font-bold text-lg mb-2 text-[#C89F62]">Tactical Analysis</h4>
+                        <p>Determine ball possession and provide a transformed top-down tactical view of the game.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pipeline" class="mb-20 scroll-mt-20">
+            <h3 class="text-3xl font-bold text-center mb-4 text-[#2C3E50]">The Analysis Pipeline</h3>
+            <p class="text-lg text-center text-gray-600 mb-12 max-w-2xl mx-auto">This project transforms raw video into actionable data through a sequential pipeline. Click on any step to learn more.</p>
+            <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+                <a href="#step1" class="pipeline-step bg-white p-4 rounded-lg shadow-md border w-full md:w-auto text-center">
+                    <span class="text-2xl">1.</span>
+                    <p class="font-semibold">Detection & Tracking</p>
+                </a>
+                <span class="text-2xl font-light text-gray-400 hidden md:block">&rarr;</span>
+                <a href="#step2" class="pipeline-step bg-white p-4 rounded-lg shadow-md border w-full md:w-auto text-center">
+                    <span class="text-2xl">2.</span>
+                    <p class="font-semibold">Camera Compensation</p>
+                </a>
+                <span class="text-2xl font-light text-gray-400 hidden md:block">&rarr;</span>
+                <a href="#step3" class="pipeline-step bg-white p-4 rounded-lg shadow-md border w-full md:w-auto text-center">
+                    <span class="text-2xl">3.</span>
+                    <p class="font-semibold">Perspective Transform</p>
+                </a>
+                <span class="text-2xl font-light text-gray-400 hidden md:block">&rarr;</span>
+                <a href="#step4" class="pipeline-step bg-white p-4 rounded-lg shadow-md border w-full md:w-auto text-center">
+                    <span class="text-2xl">4.</span>
+                    <p class="font-semibold">Data Enrichment</p>
+                </a>
+            </div>
+        </section>
+        
+        <div class="space-y-16">
+            <section id="step1" class="scroll-mt-20 p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <h4 class="text-2xl font-bold mb-4 text-[#C89F62]">Step 1: Player & Ball Tracking</h4>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <p class="text-gray-700 mb-4">The process begins by feeding each video frame into a pre-trained **YOLO (You Only Look Once)** model. This powerful deep learning model detects all players and the ball, drawing a bounding box around each.</p>
+                        <p class="text-gray-700">The `Tracker` class then assigns a persistent ID to each detected object, allowing the system to follow their movements across the entire video. To optimize performance, these tracking results are cached in a `tracks_stubs.pkl` file, saving significant processing time on subsequent runs.</p>
+                    </div>
+                    <div class="bg-[#FDFBF7] p-6 rounded-xl flex flex-col items-center justify-center h-full">
+                        <div class="w-40 h-40 border-4 border-dashed border-[#C89F62] rounded-lg flex items-center justify-center relative">
+                             <span class="text-5xl">🏃</span>
+                             <div class="absolute -bottom-4 bg-[#C89F62] text-white text-xs font-semibold px-2 py-1 rounded">Player ID: 7</div>
+                        </div>
+                        <p class="mt-4 text-center text-sm text-gray-600">A unique ID is assigned to each tracked player.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="step2" class="scroll-mt-20 p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <h4 class="text-2xl font-bold mb-4 text-[#C89F62]">Step 2: Camera Movement Estimation</h4>
+                 <p class="text-gray-700 mb-6 max-w-4xl">Broadcast cameras are never static; they pan, tilt, and zoom to follow the action. To accurately measure player movement on the pitch, we must first compensate for the camera's own movement. The `CameraMovementEstimator` analyzes the optical flow between frames to calculate the camera's motion vector. This vector is then subtracted from each player's tracked position, isolating their true movement on the field.</p>
+            </section>
+
+            <section id="step3" class="scroll-mt-20 p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <h4 class="text-2xl font-bold mb-4 text-[#C89F62]">Step 3: Tactical View Transformation</h4>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <p class="text-gray-700">The standard broadcast view is not suitable for tactical analysis. The `ViewTransformer` module performs a **perspective transformation**, mathematically converting player positions from the angled camera view to a flat, 2D "bird's-eye" view. This step is crucial for accurately calculating real-world distances between players and understanding team formations.</p>
+                    </div>
+                    <div class="flex items-center justify-center space-x-4">
+                        <div class="text-center">
+                            <div class="w-40 h-32 bg-[#FDFBF7] rounded-lg flex items-center justify-center" style="transform: perspective(200px) rotateX(20deg);">
+                                <span class="text-4xl">🎥</span>
+                            </div>
+                            <p class="mt-2 font-semibold">Camera View</p>
+                        </div>
+                        <span class="text-4xl font-light text-gray-400">&rarr;</span>
+                        <div class="text-center">
+                            <div class="w-40 h-32 bg-[#FDFBF7] rounded-lg flex items-center justify-center">
+                                <span class="text-4xl">🗺️</span>
+                            </div>
+                            <p class="mt-2 font-semibold">Tactical View</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="step4" class="scroll-mt-20 p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <h4 class="text-2xl font-bold mb-4 text-[#C89F62]">Step 4: Data Enrichment & Analytics</h4>
+                <p class="text-gray-700 mb-8 max-w-4xl">With accurate, real-world coordinates, the system enriches the data with high-level analytics. This is where raw tracking data becomes meaningful insight.</p>
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div>
+                        <h5 class="font-bold text-lg text-center mb-4">Team Assignment & Possession</h5>
+                        <p class="text-sm text-center text-gray-600 mb-4">A K-Means algorithm clusters jersey colors to assign teams. Possession is given to the player closest to the ball.</p>
+                        <div class="chart-container">
+                            <canvas id="possessionChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-lg text-center mb-4">Player Performance Metrics</h5>
+                        <p class="text-sm text-center text-gray-600 mb-4">Speed and distance are calculated from the transformed coordinates, providing key performance data.</p>
+                        <div class="chart-container">
+                            <canvas id="distanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section id="tech" class="mt-20 scroll-mt-20">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="text-3xl font-bold text-center mb-8 text-[#2C3E50]">Core Technologies</h3>
+                <div class="flex flex-wrap justify-center gap-6 text-center">
+                    <div class="w-32">
+                        <div class="text-4xl mb-2">🐍</div><p class="font-semibold">Python</p>
+                    </div>
+                    <div class="w-32">
+                        <div class="text-4xl mb-2">👁️</div><p class="font-semibold">OpenCV</p>
+                    </div>
+                    <div class="w-32">
+                        <div class="text-4xl mb-2">🧠</div><p class="font-semibold">PyTorch & YOLO</p>
+                    </div>
+                    <div class="w-32">
+                        <div class="text-4xl mb-2">🔢</div><p class="font-semibold">NumPy</p>
+                    </div>
+                    <div class="w-32">
+                        <div class="text-4xl mb-2">🥒</div><p class="font-semibold">Pickle</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="conclusion" class="mt-20 scroll-mt-20">
+             <div class="bg-gradient-to-r from-[#2C3E50] to-[#465a70] p-8 rounded-2xl text-white">
+                <h3 class="text-3xl font-bold text-center mb-8">Conclusion & Future Work</h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="text-xl font-bold mb-2 text-[#C89F62]">Conclusion</h4>
+                        <p class="opacity-90">This project successfully creates an end-to-end pipeline for automated football analysis, effectively using modern computer vision and deep learning techniques to extract meaningful data from video.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold mb-2 text-[#C89F62]">Future Directions</h4>
+                        <ul class="list-disc list-inside opacity-90 space-y-1">
+                            <li>Implement real-time analysis on live streams.</li>
+                            <li>Add event detection (e.g., goals, fouls, passes).</li>
+                            <li>Analyze team formations and tactical patterns automatically.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white mt-20 border-t">
+        <div class="container mx-auto px-6 py-6 text-center text-gray-500">
+            <p>&copy; 2025 Football Analysis Project. An interactive presentation.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const possessionCtx = document.getElementById('possessionChart').getContext('2d');
+            new Chart(possessionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Team A', 'Team B'],
+                    datasets: [{
+                        label: 'Ball Possession',
+                        data: [58, 42],
+                        backgroundColor: [
+                            'rgba(44, 62, 80, 0.8)',
+                            'rgba(200, 159, 98, 0.8)',
+                        ],
+                        borderColor: [
+                            '#2C3E50',
+                            '#C89F62',
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                            text: 'Ball Possession (%)'
+                        }
+                    }
+                }
+            });
+
+            const distanceCtx = document.getElementById('distanceChart').getContext('2d');
+            new Chart(distanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Player 7', 'Player 10', 'Player 9', 'Player 11', 'Player 4'],
+                    datasets: [{
+                        label: 'Distance Covered (km)',
+                        data: [11.2, 10.8, 9.5, 9.1, 8.5],
+                        backgroundColor: 'rgba(44, 62, 80, 0.8)',
+                        borderColor: '#2C3E50',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: false,
+                            text: 'Distance Covered by Top 5 Players (km)'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
